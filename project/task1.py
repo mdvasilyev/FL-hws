@@ -12,6 +12,6 @@ def get_graph_info(name):
 
 
 def two_cycle_graph(path, n, m, labels=("a", "b")):
-    g = cfpq.labeled_two_cycles_graph(n, m, labels)
+    g = cfpq.labeled_two_cycles_graph(n=n, m=m, labels=labels)
     dot = nx.drawing.nx_pydot.to_pydot(g)
     dot.write_raw(path)
