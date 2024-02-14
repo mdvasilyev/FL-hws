@@ -1,7 +1,6 @@
 name: Run tests
 
-on:
-  [ push, pull_request ]
+on: [push, pull_request]
 
 jobs:
   test:
@@ -28,4 +27,4 @@ jobs:
 
       - name: Run tests
         run: |
-          python ./scripts/run_tests.py
+          ./scripts/run_tests.py
