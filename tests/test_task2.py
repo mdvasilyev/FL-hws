@@ -1,6 +1,5 @@
 from pyformlang.finite_automaton import NondeterministicFiniteAutomaton
 import project.task2 as automatons
-import project.task1 as graphs
 import pytest
 
 
