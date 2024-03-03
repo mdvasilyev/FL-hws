@@ -12,7 +12,9 @@ def test_regex_dfa():
     assert expected.is_equivalent_to(dfa)
 
 
-@pytest.mark.parametrize("regex", ["abc def", "abc|def", "abc def*", "abc def | def abc", "(abc* def*)*"])
+@pytest.mark.parametrize(
+    "regex", ["abc def", "abc|def", "abc def*", "abc def | def abc", "(abc* def*)*"]
+)
 def test_regex_dfa_minimal(regex):
     dfa = automatons.regex_to_dfa(regex)
     min_dfa = dfa.minimize()
