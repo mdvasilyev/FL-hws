@@ -20,7 +20,7 @@
 
 Технологии:
 
-- Python 3.8+
+- Python 3.9+
 - Pytest для unit тестирования
 - GitHub Actions для CI
 - Google Colab для постановки и оформления экспериментов
