@@ -1,4 +1,8 @@
-from pyformlang.finite_automaton import DeterministicFiniteAutomaton, NondeterministicFiniteAutomaton, State
+from pyformlang.finite_automaton import (
+    DeterministicFiniteAutomaton,
+    NondeterministicFiniteAutomaton,
+    State,
+)
 from scipy.sparse import dok_matrix, kron
 from networkx import MultiDiGraph
 from task2 import graph_to_nfa, regex_to_dfa
@@ -17,9 +21,11 @@ class FiniteAutomaton:
     mapping = None
 
     def __init__(self, obj, start, final, mapping):
-        if isinstance(obj, (DeterministicFiniteAutomaton, NondeterministicFiniteAutomaton)):
+        if isinstance(
+            obj, (DeterministicFiniteAutomaton, NondeterministicFiniteAutomaton)
+        ):
             matrix = nfa_to_matrix(obj)
-            self.m, = matrix.m
+            (self.m,) = matrix.m
             self.start = matrix.start
             self.final = matrix.final
             self.mapping = matrix.mapping
@@ -31,7 +37,7 @@ class FiniteAutomaton:
 
     def map_for(self, u):
         return self.mapping[State(u)]
-    
+
     def accepts(self, word):
         nfa = matrix_to_nfa(self)
         real_word = "".join(list(word))
@@ -62,7 +68,9 @@ def matrix_to_nfa(automaton: FiniteAutomaton) -> NondeterministicFiniteAutomaton
         for u in range(size):
             for v in range(size):
                 if automaton.m[label][u, v]:
-                    nfa.add_transition(automaton.map_for(u), label, automaton.map_for(v))
+                    nfa.add_transition(
+                        automaton.map_for(u), label, automaton.map_for(v)
+                    )
     for s in automaton.start:
         nfa.add_start_state(automaton.map_for(s))
     for s in automaton.final:
@@ -79,7 +87,9 @@ def transitive_closure(automaton: FiniteAutomaton):
     return adj
 
 
-def intersect_automata(automaton1: FiniteAutomaton, automaton2: FiniteAutomaton) -> FiniteAutomaton:
+def intersect_automata(
+    automaton1: FiniteAutomaton, automaton2: FiniteAutomaton
+) -> FiniteAutomaton:
     labels = automaton1.m.keys() & automaton2.m.keys()
     m = dict()
     start = set()
