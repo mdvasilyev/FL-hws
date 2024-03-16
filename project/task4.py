@@ -2,44 +2,40 @@ from scipy.sparse import *
 from project.task3 import FiniteAutomaton
 
 
-def diagonalise(m):
-    h = m.shape[0]
-    res = dok_matrix(m.shape, dtype=bool)
-    for i in range(h):
-        for j in range(h):
-            if m[j, i]:
-                res[i] += m[j]
-    return res
+def diagonalise(mat):
+    result = dok_matrix(mat.shape, dtype=bool)
+    for i in range(mat.shape[0]):
+        for j in range(mat.shape[0]):
+            if mat[j, i]:
+                result[i] += mat[j]
+    return result
 
 
 def reachability_with_constraints(
     fa: FiniteAutomaton, constraints_fa: FiniteAutomaton
 ) -> dict[int, set[int]]:
-    m_source = dict()
-    ls = fa.m.keys() & constraints_fa.m.keys()
-    m = len(constraints_fa.mapping)
-    n = len(fa.mapping)
-    for l in ls:
-        a = constraints_fa.m[l]
-        b = fa.m[l]
-        m_source[l] = block_diag((a, b))
-    h = m
-    w = m + n
-    res = {s.value: set() for s in fa.mapping}
-    for state in fa.start:
-        wv = dok_matrix((h, w), dtype=bool)
-        for cst in constraints_fa.start:
-            wv[cst, cst] = True
-        for i in range(h):
-            wv[i, state + m] = True
+
+    m, n = constraints_fa.size, fa.size
+
+    labels = fa.labels & constraints_fa.labels
+    result = {s: set() for s in fa.start}
+    adj = {
+        label: block_diag((constraints_fa.m[label], fa.m[label])) for label in labels
+    }
+
+    for v in fa.start_idx:
+        front = dok_matrix((m, m + n), dtype=bool)
+        for i in constraints_fa.start_idx:
+            front[i, i] = True
+        for i in range(m):
+            front[i, v + m] = True
         for _ in range(m * n):
-            new_wv = dok_matrix((h, w), dtype=bool)
-            for l in ls:
-                new_wv += diagonalise(wv @ m_source[l])
-            wv = new_wv
-            for i in range(h):
-                if i in constraints_fa.final and wv[i, i]:
-                    for j in range(n):
-                        if j in fa.final and wv[i, j + m]:
-                            res[fa.mapping[state]].add(fa.mapping[j])
-    return res
+            front = sum(
+                [dok_matrix((m, m + n), dtype=bool)]
+                + [diagonalise(front @ adj[label]) for label in labels]
+            )
+            for i in constraints_fa.final_idx:
+                for j in fa.final_idx:
+                    if front[i, j + m]:
+                        result[v].add(j)
+    return result

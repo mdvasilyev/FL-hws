@@ -17,8 +17,12 @@ def as_set(obj):
 class FiniteAutomaton:
     m = None
     start = None
+    start_idx = None
     final = None
+    final_idx = None
     mapping = None
+    size = None
+    labels = None
 
     def __init__(self, obj, start=set(), final=set(), mapping=dict()):
         if isinstance(
@@ -27,13 +31,21 @@ class FiniteAutomaton:
             matrix = nfa_to_matrix(obj)
             self.m = matrix.m
             self.start = matrix.start
+            self.start_idx = [self.mapping_for(i) for i in self.start]
             self.final = matrix.final
+            self.start_idx = [self.mapping_for(i) for i in self.final]
             self.mapping = matrix.mapping
+            self.size = len(self.mapping)
+            self.labels = self.m.keys()
         else:
             self.m = obj
             self.start = start
+            self.start_idx = [self.mapping_for(i) for i in self.start]
             self.final = final
+            self.start_idx = [self.mapping_for(i) for i in self.final]
             self.mapping = mapping
+            self.size = len(self.mapping)
+            self.labels = self.m.keys()
 
     def map_for(self, u):
         return self.mapping[State(u)]
