@@ -3,16 +3,15 @@
 # You CAN modify this file IF AND ONLY IF you have found a bug and are willing to fix it
 # Otherwise, please report it
 import pyformlang.finite_automaton
-from networkx import MultiDiGraph
+# from networkx import MultiDiGraph
 from pyformlang.regular_expression import Regex
 import pytest
 import random
 import itertools
-import networkx as nx
+# import networkx as nx
 
 # Fix import statements in try block to run tests
 try:
-    print("Try to import")
     from project.task3 import intersect_automata, FiniteAutomaton
     from project.task2 import regex_to_dfa
 except ImportError:
