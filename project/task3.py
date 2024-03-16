@@ -5,7 +5,7 @@ from pyformlang.finite_automaton import (
 )
 from scipy.sparse import dok_matrix, kron
 from networkx import MultiDiGraph
-from task2 import graph_to_nfa, regex_to_dfa
+from project.task2 import graph_to_nfa, regex_to_dfa
 
 
 def as_set(obj):
