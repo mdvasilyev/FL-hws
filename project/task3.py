@@ -25,7 +25,7 @@ class FiniteAutomaton:
             obj, (DeterministicFiniteAutomaton, NondeterministicFiniteAutomaton)
         ):
             matrix = nfa_to_matrix(obj)
-            (self.m,) = matrix.m
+            self.m = matrix.m
             self.start = matrix.start
             self.final = matrix.final
             self.mapping = matrix.mapping
