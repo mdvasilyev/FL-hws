@@ -20,7 +20,7 @@ class FiniteAutomaton:
     final = None
     mapping = None
 
-    def __init__(self, obj, start, final, mapping):
+    def __init__(self, obj, start=set(), final=set(), mapping=dict()):
         if isinstance(
             obj, (DeterministicFiniteAutomaton, NondeterministicFiniteAutomaton)
         ):
@@ -101,7 +101,6 @@ def intersect_automata(
         for v, j in automaton2.mapping.items():
             k = len(automaton2.mapping) * i + j
             mapping[k] = k
-            assert isinstance(u, State)
             if u in automaton1.start and v in automaton2.start:
                 start.add(State(k))
             if u in automaton1.final and v in automaton2.final:
