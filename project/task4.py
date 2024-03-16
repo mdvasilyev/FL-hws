@@ -17,15 +17,15 @@ def reachability_with_constraints(
 ) -> dict[int, set[int]]:
     m_source = dict()
     ls = fa.m.keys() & constraints_fa.m.keys()
-    m = len(constraints_fa.i_to_state)
-    n = len(fa.i_to_state)
+    m = len(constraints_fa.mapping)
+    n = len(fa.mapping)
     for l in ls:
         a = constraints_fa.m[l]
         b = fa.m[l]
         m_source[l] = block_diag((a, b))
     h = m
     w = m + n
-    res = {s.value: set() for s in fa.i_to_state}
+    res = {s.value: set() for s in fa.mapping}
     for state in fa.start_states:
         wv = dok_matrix((h, w), dtype=bool)
         for cst in constraints_fa.start_states:
@@ -41,5 +41,5 @@ def reachability_with_constraints(
                 if i in constraints_fa.final_states and wv[i, i]:
                     for j in range(n):
                         if j in fa.final_states and wv[i, j + m]:
-                            res[fa.i_to_state[state]].add(fa.i_to_state[j])
+                            res[fa.mapping[state]].add(fa.mapping[j])
     return res
