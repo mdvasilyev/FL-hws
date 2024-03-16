@@ -19,8 +19,6 @@ class FiniteAutomaton:
     start = None
     final = None
     mapping = None
-    size = None
-    labels = None
 
     def __init__(self, obj, start=set(), final=set(), mapping=dict()):
         if isinstance(
@@ -31,18 +29,17 @@ class FiniteAutomaton:
             self.start = matrix.start
             self.final = matrix.final
             self.mapping = matrix.mapping
-            self.size = len(self.mapping)
-            self.labels = self.m.keys()
         else:
             self.m = obj
             self.start = start
             self.final = final
             self.mapping = mapping
-            self.size = len(self.mapping)
-            self.labels = self.m.keys()
     
     def map_for(self, u):
         return self.mapping[State(u)]
+    
+    def size(self):
+        return len(self.mapping)
     
     def start_idx(self):
         return [self.map_for(i) for i in self.start]
@@ -50,6 +47,9 @@ class FiniteAutomaton:
     def final_idx(self):
         return [self.map_for(i) for i in self.final]
 
+    def labels(self):
+        return self.m.keys()
+    
     def accepts(self, word):
         nfa = matrix_to_nfa(self)
         real_word = "".join(list(word))
