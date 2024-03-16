@@ -26,9 +26,9 @@ def reachability_with_constraints(
     h = m
     w = m + n
     res = {s.value: set() for s in fa.mapping}
-    for state in fa.start_states:
+    for state in fa.start:
         wv = dok_matrix((h, w), dtype=bool)
-        for cst in constraints_fa.start_states:
+        for cst in constraints_fa.start:
             wv[cst, cst] = True
         for i in range(h):
             wv[i, state + m] = True
@@ -38,8 +38,8 @@ def reachability_with_constraints(
                 new_wv += diagonalise(wv @ m_source[l])
             wv = new_wv
             for i in range(h):
-                if i in constraints_fa.final_states and wv[i, i]:
+                if i in constraints_fa.final and wv[i, i]:
                     for j in range(n):
-                        if j in fa.final_states and wv[i, j + m]:
+                        if j in fa.final and wv[i, j + m]:
                             res[fa.mapping[state]].add(fa.mapping[j])
     return res
