@@ -5,7 +5,7 @@ from pyformlang.finite_automaton import (
 )
 from scipy.sparse import dok_matrix, kron
 from networkx import MultiDiGraph
-from task2 import graph_to_nfa, regex_to_dfa
+from project.task2 import graph_to_nfa, regex_to_dfa
 
 
 def as_set(obj):
@@ -20,12 +20,12 @@ class FiniteAutomaton:
     final = None
     mapping = None
 
-    def __init__(self, obj, start, final, mapping):
+    def __init__(self, obj, start=set(), final=set(), mapping=dict()):
         if isinstance(
             obj, (DeterministicFiniteAutomaton, NondeterministicFiniteAutomaton)
         ):
             matrix = nfa_to_matrix(obj)
-            (self.m,) = matrix.m
+            self.m = matrix.m
             self.start = matrix.start
             self.final = matrix.final
             self.mapping = matrix.mapping
@@ -110,8 +110,15 @@ def intersect_automata(
 
 def paths_ends(
     graph: MultiDiGraph, start_nodes: set[int], final_nodes: set[int], regex: str
-) -> list:
-    automaton1 = FiniteAutomaton(nka=graph_to_nfa(graph=graph))
-    automaton2 = FiniteAutomaton(dka=regex_to_dfa(regex=regex))
-    res = intersect_automata(automaton1, automaton2)
-    return zip(res.starts_states, res.finals_states)
+) -> list[tuple[object, object]]:
+    nfa = nfa_to_matrix(graph_to_nfa(graph, start_nodes, final_nodes))
+    dfa = nfa_to_matrix(regex_to_dfa(regex))
+    intersec = intersect_automata(nfa, dfa)
+    clos = transitive_closure(intersec)
+    mapping = {v: i for i, v in nfa.mapping.items()}
+    size = len(dfa.mapping)
+    res = list()
+    for u, v in zip(*clos.nonzero()):
+        if u in intersec.start and v in intersec.final:
+            res.append((mapping[u // size], mapping[v // size]))
+    return res
