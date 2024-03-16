@@ -16,12 +16,12 @@ def reachability_with_constraints(
     fa: FiniteAutomaton, constraints_fa: FiniteAutomaton
 ) -> dict[int, set[int]]:
     m_source = dict()
-    ls = fa.matrix.keys() & constraints_fa.matrix.keys()
+    ls = fa.m.keys() & constraints_fa.m.keys()
     m = len(constraints_fa.i_to_state)
     n = len(fa.i_to_state)
     for l in ls:
-        a = constraints_fa.matrix[l]
-        b = fa.matrix[l]
+        a = constraints_fa.m[l]
+        b = fa.m[l]
         m_source[l] = block_diag((a, b))
     h = m
     w = m + n
