@@ -7,6 +7,7 @@ def reachability_with_constraints(
 ) -> dict[int, set[int]]:
     m = constraints_fa.size()
     n = fa.size()
+
     def diagonalise(mat):
         res = dok_matrix(mat.shape, dtype=bool)
         for i in range(mat.shape[0]):
