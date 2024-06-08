@@ -62,6 +62,9 @@ class FiniteAutomaton:
     def size(self):
         return len(self.mapping)
 
+    def start_idx(self):
+        return [self.map_for(i) for i in self.start]
+
     def map_for(self, u) -> int:
         return self.mapping[State(u)]
 
