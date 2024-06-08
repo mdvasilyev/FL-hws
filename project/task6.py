@@ -1,24 +1,17 @@
-import pyformlang
+from pyformlang.cfg import CFG, Variable, Terminal, Epsilon
 import networkx as nx
 from copy import deepcopy
 
 
-def cfg_to_weak_normal_form(cfg: pyformlang.cfg.CFG) -> pyformlang.cfg.CFG:
+def cfg_to_weak_normal_form(cfg: CFG) -> CFG:
     cfg = cfg.eliminate_unit_productions().remove_useless_symbols()
-    rules = cfg._get_productions_with_only_single_pyformlang.cfg.Terminals()
-    new_rules = set(cfg._decompose_productions(rules))
-    return pyformlang.cfg.CFG(
-        start_symbol=pyformlang.cfg.Variable("S"), productions=new_rules
-    )
-
-
-def gramm_from_file(filepath: str) -> pyformlang.cfg.CFG:
-    with open(filepath) as f:
-        return pyformlang.cfg.CFG.from_text("".join(ls for ls in f))
+    tmp = cfg._get_productions_with_only_single_terminals()
+    new = set(cfg._decompose_productions(tmp))
+    return CFG(start_symbol=Variable("S"), productions=new)
 
 
 def cfpq_with_hellings(
-    cfg: pyformlang.cfg.CFG,
+    cfg: CFG,
     graph: nx.DiGraph,
     start_nodes: set[int] = None,
     final_nodes: set[int] = None,
@@ -33,9 +26,9 @@ def cfpq_with_hellings(
     NN = {}
     for p in gr.productions:
         p_len = len(p.body)
-        if p_len == 1 and isinstance(p.body[0], pyformlang.cfg.Terminal):
+        if p_len == 1 and isinstance(p.body[0], Terminal):
             terms.setdefault(p.head, set()).add(p.body[0])
-        elif p_len == 0 or p_len == 1 and isinstance(p.body[0], pyformlang.cfg.Epsilon):
+        elif p_len == 0 or p_len == 1 and isinstance(p.body[0], Epsilon):
             eps.add(p.head)
         elif p_len == 2:
             NN.setdefault(p.head, set()).add((p.body[0], p.body[1]))
@@ -44,7 +37,7 @@ def cfpq_with_hellings(
         (N, v, u)
         for (v, u, tag) in graph.edges.data("label")
         for N in terms
-        if pyformlang.cfg.Terminal(tag) in terms[N]
+        if Terminal(tag) in terms[N]
     }
     new = deepcopy(r)
     while len(new) != 0:
@@ -66,7 +59,5 @@ def cfpq_with_hellings(
     return {
         (v, u)
         for (N_i, v, u) in r
-        if v in start_nodes
-        and u in final_nodes
-        and pyformlang.cfg.Variable(N_i) == gr.start_symbol
+        if v in start_nodes and u in final_nodes and Variable(N_i) == cfg.start_symbol
     }

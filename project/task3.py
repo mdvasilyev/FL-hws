@@ -1,11 +1,14 @@
+from typing import Iterable, Union
 from networkx import MultiDiGraph
+from copy import deepcopy
 from pyformlang.finite_automaton import (
+    Symbol,
     DeterministicFiniteAutomaton,
     NondeterministicFiniteAutomaton,
     State,
 )
-from scipy.sparse import dok_matrix, kron
-from project.task2 import graph_to_nfa, regex_to_dfa
+import scipy.sparse as sparse
+from project.task2 import regex_to_dfa, graph_to_nfa
 
 
 def as_set(obj):
@@ -15,129 +18,73 @@ def as_set(obj):
 
 
 class FiniteAutomaton:
-    m = None
-    start = None
-    final = None
-    mapping = None
-    gg = True
-    null_symbols = None
-    states = None
-
     def __init__(
-        self, obj, start=set(), final=set(), mapping=dict(), matrix_class=dok_matrix
+        self, obj: Union[NondeterministicFiniteAutomaton, DeterministicFiniteAutomaton]
     ):
-        if isinstance(
-            obj, (DeterministicFiniteAutomaton, NondeterministicFiniteAutomaton)
-        ):
-            matrix = nfa_to_matrix(obj, matrix_class=matrix_class)
-            self.m = matrix.m
-            self.start = matrix.start
-            self.final = matrix.final
-            self.mapping = matrix.mapping
-        else:
-            self.m = obj
-            self.start = start
-            self.final = final
-            self.mapping = mapping
-
-    def accepts(self, word) -> bool:
-        nfa = matrix_to_nfa(self)
-        real_word = "".join(list(word))
-        return nfa.accepts(real_word)
+        self.start = obj.start_states
+        self.final = obj.final_states
+        states = obj.to_dict()
+        len_states = len(obj.states)
+        self.mapping = {v: i for i, v in enumerate(obj.states)}
+        self.matrix = dict()
+        for label in obj.symbols:
+            self.matrix[label] = sparse.dok_matrix((len_states, len_states), dtype=bool)
+            for u, edges in states.items():
+                if label in edges:
+                    for v in as_set(edges[label]):
+                        self.matrix[label][self.mapping[u], self.mapping[v]] = True
 
     def is_empty(self) -> bool:
-        if len(self.m) == 0:
-            return True
-        m = sum(self.m.values())
-        for _ in range(m.shape[0]):
-            m += m @ m
-        if m.shape[0] != 0 or m.shape[1] != 0:
-            return True
-        for u in self.start:
-            for v in self.final:
-                if m[u, v] != 0:
-                    return False
-        return True
+        return len(self.matrix.values()) == 0
 
-    def size(self):
+    def size(self) -> int:
         return len(self.mapping)
 
-    def start_idx(self):
-        return [self.map_for(i) for i in self.start]
+    def accepts(self, word: Iterable[Symbol]) -> bool:
+        real_word = "".join(word)
+        return self.to_automaton().accepts(real_word)
 
-    def final_idx(self):
-        return [self.map_for(i) for i in self.final]
+    def transitive_closure(self) -> sparse.dok_matrix:
+        if self.is_empty():
+            return sparse.dok_matrix((0, 0), dtype=bool)
+        adj = sum(self.matrix.values()) + sparse.eye(
+            self.size(), self.size(), dtype=bool
+        )
+        for _ in range(adj.shape[0]):
+            adj += adj @ adj
+        return adj
 
-    def map_for(self, u) -> int:
-        return self.mapping[State(u)]
-
-    def labels(self):
-        return self.mapping.keys() if self.gg else self.m.keys()
-
-
-def nfa_to_matrix(
-    automaton: NondeterministicFiniteAutomaton, matrix_class=dok_matrix
-) -> FiniteAutomaton:
-    states = automaton.to_dict()
-    len_states = len(automaton.states)
-    mapping = {v: i for i, v in enumerate(automaton.states)}
-    m = dict()
-
-    for label in automaton.symbols:
-        m[label] = matrix_class((len_states, len_states), dtype=bool)
-        for u, edges in states.items():
-            if label in edges:
-                for v in as_set(edges[label]):
-                    m[label][mapping[u], mapping[v]] = True
-
-    res = FiniteAutomaton(m, automaton.start_states, automaton.final_states, mapping)
-    res.states = len(automaton.states)
-    return res
-
-
-def matrix_to_nfa(automaton: FiniteAutomaton) -> NondeterministicFiniteAutomaton:
-    nfa = NondeterministicFiniteAutomaton()
-    for label in automaton.m.keys():
-        m_size = automaton.m[label].shape[0]
-        for u in range(m_size):
-            for v in range(m_size):
-                if automaton.m[label][u, v]:
-                    nfa.add_transition(
-                        automaton.map_for(u), label, automaton.map_for(v)
-                    )
-    for s in automaton.start:
-        nfa.add_start_state(automaton.map_for(s))
-    for s in automaton.final:
-        nfa.add_final_state(automaton.map_for(s))
-    return nfa
-
-
-def transitive_closure(automaton: FiniteAutomaton):
-    if len(automaton.m.values()) == 0:
-        return dok_matrix((0, 0), dtype=bool)
-    adj = sum(automaton.m.values())
-    lst = -1
-    while adj.count_nonzero() != lst:
-        lst = adj.count_nonzero()
-        adj += adj @ adj
-    return adj
+    def to_automaton(self) -> NondeterministicFiniteAutomaton:
+        automaton = NondeterministicFiniteAutomaton()
+        for label in self.matrix.keys():
+            size = self.matrix[label].shape[0]
+            for x in range(size):
+                for y in range(size):
+                    if self.matrix[label][x, y]:
+                        automaton.add_transition(
+                            self.mapping[State(x)],
+                            label,
+                            self.mapping[State(y)],
+                        )
+        for s in self.start:
+            automaton.add_start_state(self.mapping[State(s)])
+        for s in self.final:
+            automaton.add_final_state(self.mapping[State(s)])
+        return automaton
 
 
 def intersect_automata(
-    automaton1: FiniteAutomaton,
-    automaton2: FiniteAutomaton,
-    matrix_class_id="csr",
-    g=True,
+    automaton1: FiniteAutomaton, automaton2: FiniteAutomaton
 ) -> FiniteAutomaton:
-    automaton1.gg = not g
-    automaton2.gg = not g
-    labels = automaton1.labels() & automaton2.labels()
-    m = dict()
+    res = deepcopy(automaton1)
+    symbols = automaton1.matrix.keys() & automaton2.matrix.keys()
+    matrices = {
+        label: sparse.kron(automaton1.matrix[label], automaton2.matrix[label], "csr")
+        for label in symbols
+    }
     start = set()
     final = set()
     mapping = dict()
-    for label in labels:
-        m[label] = kron(automaton1.m[label], automaton2.m[label], matrix_class_id)
     for u, i in automaton1.mapping.items():
         for v, j in automaton2.mapping.items():
             k = len(automaton2.mapping) * i + j
@@ -146,38 +93,31 @@ def intersect_automata(
                 start.add(State(k))
             if u in automaton1.final and v in automaton2.final:
                 final.add(State(k))
-    return FiniteAutomaton(m, start, final, mapping)
-
-
-def reachability_with_constraints_transitive(
-    graph_nfa, regex_dfa, matrix_class_id="csr"
-) -> list[tuple[object, object]]:
-    intersection = intersect_automata(
-        graph_nfa, regex_dfa, matrix_class_id=matrix_class_id, g=False
-    )
-    closure = transitive_closure(intersection)
-    mapping = {v: i for i, v in graph_nfa.mapping.items()}
-    result = list()
-    for u, v in zip(*closure.nonzero()):
-        if u in intersection.start and v in intersection.final:
-            result.append(
-                (mapping[u // regex_dfa.size()], mapping[v // regex_dfa.size()])
-            )
-    return result
+    res.matrix = matrices
+    res.mapping = mapping
+    res.start = start
+    res.final = final
+    return res
 
 
 def paths_ends(
-    graph: MultiDiGraph,
-    start_nodes: set[int],
-    final_nodes: set[int],
-    regex: str,
-    matrix_class=dok_matrix,
-    matrix_class_id="csr",
-) -> list[tuple[object, object]]:
-    graph_nfa = nfa_to_matrix(
-        graph_to_nfa(graph, start_nodes, final_nodes), matrix_class=matrix_class
-    )
-    regex_dfa = nfa_to_matrix(regex_to_dfa(regex), matrix_class=matrix_class)
-    return reachability_with_constraints_transitive(
-        graph_nfa, regex_dfa, matrix_class_id=matrix_class_id
-    )
+    graph: MultiDiGraph, start_nodes: set[int], final_nodes: set[int], regex: str
+) -> list[tuple[any, any]]:
+    q = FiniteAutomaton(regex_to_dfa(regex))
+    automaton = FiniteAutomaton(graph_to_nfa(graph, start_nodes, final_nodes))
+    intersection = intersect_automata(automaton, q)
+    closure = intersection.transitive_closure()
+    size = q.size()
+    res = set()
+    for u, v in zip(*closure.nonzero()):
+        if u in intersection.start and v in intersection.final:
+            res.add(
+                (
+                    automaton.mapping[u // size],
+                    automaton.mapping[v // size],
+                )
+            )
+    if len(q.start & q.final) > 0:
+        res |= {(i, i) for i in start_nodes & final_nodes}
+    res = list(res)
+    return res
