@@ -38,6 +38,19 @@ class FiniteAutomaton:
     def map_for(self, u):
         return self.mapping[State(u)]
 
+
+    def size(self):
+        return len(self.mapping)
+
+    def start_idx(self):
+        return [self.map_for(i) for i in self.start]
+
+    def final_idx(self):
+        return [self.map_for(i) for i in self.final]
+
+    def labels(self):
+        return self.m.keys()
+
     def accepts(self, word):
         nfa = matrix_to_nfa(self)
         real_word = "".join(list(word))
