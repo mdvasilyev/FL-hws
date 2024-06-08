@@ -65,6 +65,9 @@ class FiniteAutomaton:
     def start_idx(self):
         return [self.map_for(i) for i in self.start]
 
+    def final_idx(self):
+        return [self.map_for(i) for i in self.final]
+
     def map_for(self, u) -> int:
         return self.mapping[State(u)]
 
