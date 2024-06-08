@@ -20,7 +20,7 @@ def cfpq_with_hellings(
 ) -> set[tuple[int, int]]:
     if start_nodes is None:
         start_nodes = graph.nodes
-    elif final_nodes is None:
+    if final_nodes is None:
         final_nodes = graph.nodes
     cfg = cfg_to_weak_normal_form(cfg)
     eps = set()
