@@ -35,7 +35,7 @@ class FiniteAutomaton:
                         self.matrix[label][self.mapping[u], self.mapping[v]] = True
 
     def is_empty(self) -> bool:
-        return len(self.matrix.values()) == 0
+        return self.to_automaton().is_empty()
 
     def size(self) -> int:
         return len(self.mapping)
