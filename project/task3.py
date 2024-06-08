@@ -38,7 +38,6 @@ class FiniteAutomaton:
     def map_for(self, u):
         return self.mapping[State(u)]
 
-
     def size(self):
         return len(self.mapping)
 
