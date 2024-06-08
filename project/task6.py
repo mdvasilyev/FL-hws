@@ -20,22 +20,16 @@ def cfpq_with_hellings(
 ) -> set[tuple[int, int]]:
     if start_nodes is None:
         start_nodes = graph.nodes
-    else:
-        start_nodes = start_nodes
     if final_nodes is None:
         final_nodes = graph.nodes
-    else:
-        final_nodes = final_nodes
     cfg = cfg_to_weak_normal_form(cfg)
-    eps = set()
+    eps = {p.head for p in cfg.productions if len(p.body) == 0}
     terms = {}
     NN = {}
     for p in cfg.productions:
-        if len(p.body) == 0:
-            eps.add(p.head)
         if len(p.body) == 1 and isinstance(p.body[0], Terminal):
             terms.setdefault(p.head, set()).add(p.body[0])
-        elif len(p.body) == 2:
+        if len(p.body) == 2:
             NN.setdefault(p.head, set()).add((p.body[0], p.body[1]))
     r = {(N, v, v) for N in eps for v in graph.nodes}
     r |= {
@@ -49,16 +43,16 @@ def cfpq_with_hellings(
         N_i, v, u = new.pop()
         to_add = set()
         for N_j, v_, u_ in r:
-            if v == u_:
+            if u_ == v:
                 for N_k, NNs in NN.items():
                     if (N_j, N_i) in NNs and (N_k, v_, u) not in r:
                         new.add((N_k, v_, u))
                         to_add.add((N_k, v_, u))
             if v_ == u:
-                for M_k, NNs in NN.items():
-                    if (N_i, N_j) in NNs and (M_k, v, u_) not in r:
-                        new.add((M_k, v, u_))
-                        to_add.add((M_k, v, u_))
+                for M_, NNs in NN.items():
+                    if (N_i, N_j) in NNs and (M_, v, u_) not in r:
+                        new.add((M_, v, u_))
+                        to_add.add((M_, v, u_))
         r |= to_add
     return {
         (v, u)
