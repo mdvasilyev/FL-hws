@@ -1,10 +1,10 @@
-from pyformlang.cfg import *
-from networkx import DiGraph
+import pyformlang
+import networkx as nx
 
 
-def cfg_to_weak_normal_form(cfg: CFG) -> CFG:
+def cfg_to_weak_normal_form(cfg: pyformlang.cfg.CFG) -> pyformlang.cfg.CFG:
     cfg = cfg.eliminate_unit_productions().remove_useless_symbols()
-    return CFG(
+    return pyformlang.cfg.CFG(
         start_symbol=cfg.start_symbol,
         productions=cfg._decompose_productions(
             cfg._get_productions_with_only_single_terminals()
@@ -12,9 +12,14 @@ def cfg_to_weak_normal_form(cfg: CFG) -> CFG:
     )
 
 
+def gramm_from_file(filepath: str) -> pyformlang.cfg.CFG:
+    with open(filepath) as f:
+        return pyformlang.cfg.CFG.from_text("".join(l for l in f))
+
+
 def cfpq_with_hellings(
-    cfg: CFG,
-    graph: DiGraph,
+    cfg: pyformlang.cfg.CFG,
+    graph: nx.DiGraph,
     start_nodes: set[int] = None,
     final_nodes: set[int] = None,
 ) -> set[tuple[int, int]]:
@@ -27,7 +32,7 @@ def cfpq_with_hellings(
     terms = {}
     NN = {}
     for p in cfg.productions:
-        if len(p.body) == 1 and isinstance(p.body[0], Terminal):
+        if len(p.body) == 1 and isinstance(p.body[0], pyformlang.cfg.Terminal):
             terms.setdefault(p.head, set()).add(p.body[0])
         if len(p.body) == 2:
             NN.setdefault(p.head, set()).add((p.body[0], p.body[1]))
@@ -36,7 +41,7 @@ def cfpq_with_hellings(
         (N, v, u)
         for N, ls in terms.items()
         for v, u, tag in graph.edges(data="label")
-        if Terminal(tag) in ls
+        if pyformlang.cfg.Terminal(tag) in ls
     }
     new = r.copy()
     while len(new) != 0:
