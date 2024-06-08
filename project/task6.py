@@ -3,7 +3,7 @@ from networkx import DiGraph
 
 
 def cfg_to_weak_normal_form(cfg: CFG) -> CFG:
-    cfg = cfg.remove_useless_symbols()
+    cfg = cfg.eliminate_unit_productions().remove_useless_symbols()
     return CFG(
         start_symbol=cfg.start_symbol,
         productions=cfg._decompose_productions(
