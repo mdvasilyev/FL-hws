@@ -22,7 +22,7 @@ def cfpq_with_matrix(
     for p in gr.productions:
         if len(p.body) == 0:
             eps.add(p.head.to_text())
-        if isinstance(p.body[0], pyformlang.cfg.Terminal) and len(p.body) == 1:
+        if len(p.body) == 1 and isinstance(p.body[0], pyformlang.cfg.Terminal):
             ts.setdefault(p.body[0].to_text(), set()).add(p.head.to_text())
         m[p.head.to_text()] = dok_matrix(
             (graph.number_of_nodes(), graph.number_of_nodes()), dtype=bool
