@@ -3,6 +3,7 @@ import networkx as nx
 from project.task6 import cfg_to_weak_normal_form
 import scipy.sparse as sparse
 
+
 def cfpq_with_matrix(
     cfg: CFG,
     graph: nx.DiGraph,
@@ -22,9 +23,7 @@ def cfpq_with_matrix(
         if len(p.body) == 0:
             eps.add(p.head.to_text())
         if len(p.body) == 1 and isinstance(p.body[0], Terminal):
-            ts.setdefault(p.body[0].to_text(), set()).add(
-                p.head.to_text()
-            )
+            ts.setdefault(p.body[0].to_text(), set()).add(p.head.to_text())
         if len(p.body) == 2:
             nn.setdefault(p.head.to_text(), set()).add(
                 (p.body[0].to_text(), p.body[1].to_text())
