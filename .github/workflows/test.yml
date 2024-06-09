@@ -1,6 +1,6 @@
 name: Run tests
 
-on: [push, pull_request]
+on: [ push ]
 
 jobs:
   test:
@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.9"
+          - "3.12"
 
     steps:
       - name: Set up Git repository
