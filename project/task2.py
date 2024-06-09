@@ -6,22 +6,21 @@ from pyformlang.finite_automaton import NondeterministicFiniteAutomaton, State
 
 def regex_to_dfa(reg):
     regex = Regex(reg)
-    nfa = regex.to_epsilon_nfa()
-    return nfa.to_deterministic().minimize()
+    return regex.to_epsilon_nfa().minimize()
 
 
 def graph_to_nfa(graph: MultiDiGraph, start: Set[int], final: Set[int]):
-    nfa = NondeterministicFiniteAutomaton(graph)
-    if not start:
-        for i in graph.nodes():
-            start.add(i)
-    if not final:
-        for i in graph.nodes():
-            final.add(i)
+    nfa = NondeterministicFiniteAutomaton()
+    if start is None or len(start) == 0:
+        for node in graph.nodes:
+            nfa.add_start_state(node)
     for node in start:
-        nfa.add_start_state(State(node))
+        nfa.add_start_state(node)
+    if final is None or len(final) == 0:
+        for node in graph.nodes:
+            nfa.add_final_state(node)
     for node in final:
-        nfa.add_final_state(State(node))
-    for v, u, data in graph.edges(data=True):
-        nfa.add_transition(v, data["label"], u)
+        nfa.add_final_state(node)
+    for u, v, label in graph.edges(data="label"):
+        nfa.add_transition(State(u), label, State(v))
     return nfa
