@@ -25,6 +25,10 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip list
 
+      - name: antlrR4
+        run: |
+          antlr4 -Dlanguage=Python3 project/lang.g4 -visitor -o project/lang
+
       - name: Run tests
         run: |
           python ./scripts/run_tests.py
