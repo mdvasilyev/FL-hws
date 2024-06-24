@@ -27,7 +27,7 @@ jobs:
 
       - name: antlrR4
         run: |
-          antlr4 -Dlanguage=Python3 project/lang.g4 -visitor -o project/lang
+          antlr4 -Dlanguage=Python3 project/lang.g4 -visitor -o -Xexact-output-dir project/lang
 
       - name: Run tests
         run: |
